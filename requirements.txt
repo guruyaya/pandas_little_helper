@@ -87,7 +87,6 @@ pycodestyle==2.6.0
 pycosat==0.6.3
 pydantic==1.6.1
 pyflakes==2.2.0
-pyodbc>=4.0.0
 pyparsing==2.4.7
 pyreadline==2.1
 PySocks==1.7.1
