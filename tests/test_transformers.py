@@ -49,6 +49,11 @@ class TestTargetEncoder(unittest.TestCase):
         for i, val in enumerate(expecting_train_transformed):
             self.assertAlmostEqual(train_transformed.item(i,0), val, msg=f'Item number {i}')
 
+        test_transformed = te.transform(first_test_X)
+        expected_test_transformed = [8., 8., 77., 77.0, 39.0]
+        for i, val in enumerate(expected_test_transformed):
+            self.assertAlmostEqual(test_transformed.item(i,0), val, msg=f'Item number {i}')
+
         with self.assertRaises(BaseException):
             te = TargetEncoder('group1')
             te.fit(first_train_X, fail1_train_y)
@@ -66,14 +71,15 @@ class TestTargetEncoder(unittest.TestCase):
         for i, val in enumerate(expecting_train_transformed):
             self.assertAlmostEqual(train_transformed.item(i,0), val, msg=f'Item number {i}')
 
-        with self.assertRaises(BaseException):
-            te = TargetEncoder('group1')
-            te.fit(first_train_X, fail1_train_y)
+        test_transformed = te.transform(first_test_X)
+        expected_test_transformed = [11., 39., 77., 77.0, 39.0]
+        for i, val in enumerate(expected_test_transformed):
+            self.assertAlmostEqual(test_transformed.item(i,0), val, msg=f'Item number {i}')
 
     def test_with_all_named_functions(self):
         functions = list( TargetEncoder.possible_target_functions.keys() )
         te = TargetEncoder('group1', functions)
-        te.fit(first_train_X, first_train_y)
+        train_transformed = te.fit_transform(first_train_X, first_train_y)
         expecting_found_results = {
             'mean': {'A': 8.0, 'B': 50.5, 'C': 77.0, 'D': 55.0},
             'median': {'A': 7.0, 'B': 50.5, 'C': 77.0, 'D': 55.0},
@@ -92,17 +98,33 @@ class TestTargetEncoder(unittest.TestCase):
                     msg='On funcion {} key {}'.format(function_name, key))
 
         expecting_missing_results = {'mean': 39.0, 'median': 13.0, 'std': 42.0446,
-            'min': 1, 'max': 109, 'size': 8, 'mean_plus_std': 81.045, 'mean_minus_std': -3.045}
+            'min': 1.0, 'max': 109.0, 'size': 8.0, 'mean_plus_std': 81.045, 'mean_minus_std': -3.045}
 
         for function_name in functions:
             value = expecting_missing_results[function_name]
             self.assertAlmostEqual(value, te.missing_groups_results_[function_name], 3, 
             msg=f"On function {function_name}")
 
+        expected_test_transformed = [
+            [8.0, 7.0, 5.354, 2, 15, 3, 13.354, 2.646],
+            [8.0, 7.0, 5.354, 2, 15, 3, 13.354, 2.646],
+            [77.,77.,0.,77.,77.,1.,77.,77.,],
+            [77.,77.,0.,77.,77.,1.,77.,77.,],
+            [39.0, 13.0, 42.0446, 1.0, 109.0, 8.0, 81.045, -3.045],
+        ]
+
+        test_transformed = te.transform(first_test_X)
+        for i, val_list in enumerate(expected_test_transformed):
+            for fnum, function_name in enumerate(functions):
+                val = val_list[fnum]
+                self.assertAlmostEqual(test_transformed.item(i,fnum), val, 3,
+                    msg=f'Item number {i} function: {function_name}')
+
     def test_with_custom_unnamed_functions(self):
         functions = [lambda s: np.quantile(s, 0.99), 'min', lambda s: np.max(s)]
         te = TargetEncoder('group1', functions)
         te.fit(first_train_X, first_train_y)
+
         expecting_found_results = {
             'function0': {'A': 14.84, 'B': 89.21, 'C': 77.0, 'D': 107.92},
             'min': {'A': 2, 'B': 11, 'C': 77.0, 'D': 1},
@@ -118,6 +140,11 @@ class TestTargetEncoder(unittest.TestCase):
             self.assertAlmostEqual(value, te.missing_groups_results_[key], 3,
                     msg='On key {key}')
 
+        features = te.get_feature_names()
+
+        for i, key in enumerate(expecting_found_results):
+            self.assertEqual(key, features[i])
+
     def test_with_custom_partly_named_function(self):
         functions = [lambda s: np.quantile(s, 0.99), 'min', lambda s: np.max(s)]
         functions_names = [None, None, 'MAXIMUM']
@@ -132,6 +159,25 @@ class TestTargetEncoder(unittest.TestCase):
             for key, value in values_list.items():
                 self.assertAlmostEqual(value, te.found_results_[function_name].loc[key],3,
                     msg='On funcion {} key {}'.format(function_name, key))
+
+        test_transformed = te.transform(first_test_X)
+        expected_test_transformed =[
+            [14.84, 2., 15., ],
+            [14.84, 2., 15., ],
+            [77., 77., 77., ],
+            [77., 77., 77., ],
+            [107.67, 1., 109., ]
+        ]
+        for i, val_list in enumerate(expected_test_transformed):
+            for fnum, function_name in enumerate(functions):
+                val = val_list[fnum]
+                self.assertAlmostEqual(test_transformed.item(i,fnum), val, 3,
+                    msg=f'Item number {i} function: {function_name}')
+
+        features = te.get_feature_names()
+
+        for i, key in enumerate(expecting_found_results):
+            self.assertEqual(key, features[i])
 
         with self.assertRaises(BaseException):
             functions = [lambda s: np.quantile(s, 0.99), 'min', lambda s: np.max(s)]

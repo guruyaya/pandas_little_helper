@@ -67,8 +67,8 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         'mean_minus_std': lambda df: np.mean(df) - np.std(df),
     }
 
-    found_results_: Dict[str, Any] = {}
-    missing_groups_results_: Dict[str, Any] = {}
+    found_results_: Dict[str, Any]
+    missing_groups_results_: Dict[str, Any]
 
     def __init__(self,
                 group_cols: Union[str, int, List[Union[str]]] ,
@@ -153,9 +153,11 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         groups_y = y_copy.groupby([X_copy[col] for col in group_cols]) # type: ignore
         target_functions_callables = self._fill_in_string_target_functions(target_functions)
 
+        self.found_results_ = {}
         for name, func in zip(target_functions_names, target_functions_callables):
             self.found_results_[name] = groups_y.apply(func)
 
+        self.missing_groups_results_ = {}
         for name, func in zip(target_functions_names, target_functions_callables):
             self.missing_groups_results_[name] = func(y)
 
@@ -172,7 +174,8 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
 
         for function_name in self.found_results_:
             out[function_name] = X_copy_index.map(self.found_results_[function_name])
-            out[function_name] = out[function_name].fillna(self.missing_groups_results_[function_name])
+            out[function_name] = out[function_name].fillna(
+                self.missing_groups_results_[function_name])
         return out.to_numpy()
 
     def get_feature_names(self):
