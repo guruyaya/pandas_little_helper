@@ -172,7 +172,7 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
 
         for function_name in self.found_results_:
             out[function_name] = X_copy_index.map(self.found_results_[function_name])
-            out[function_name].fillna(self.missing_groups_results_[function_name])
+            out[function_name] = out[function_name].fillna(self.missing_groups_results_[function_name])
         return out.to_numpy()
 
     def get_feature_names(self):
