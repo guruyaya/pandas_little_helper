@@ -31,8 +31,11 @@ jobs:
     - name: Lint with pylint
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        pylint pandas_little_helper 
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        pylint pandas_little_helper
+    - name: Lint with mypy
+      run: |
+        # stop the build if there are Python types don't match
+        mypy pandas_little_helper
     - name: Test with pytest
       run: |
         pytest tests
