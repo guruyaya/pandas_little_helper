@@ -84,6 +84,7 @@ class TestTargetEncoder(unittest.TestCase):
             'mean': {'A': 8.0, 'B': 50.5, 'C': 77.0, 'D': 55.0},
             'median': {'A': 7.0, 'B': 50.5, 'C': 77.0, 'D': 55.0},
             'size': {'A': 3, 'B': 2, 'C': 1, 'D': 2},
+            'sum': {'A': 24, 'B': 101, 'C': 77, 'D': 110},
             'std': {'A': 5.354, 'B': 39.5, 'C': 0.0, 'D': 54},
             'min': {'A': 2, 'B': 11, 'C': 77.0, 'D': 1},
             'max': {'A': 15, 'B': 90, 'C': 77.0, 'D': 109},
@@ -97,8 +98,8 @@ class TestTargetEncoder(unittest.TestCase):
                 self.assertAlmostEqual(value, te.found_results_[function_name].loc[key],3,
                     msg='On funcion {} key {}'.format(function_name, key))
 
-        expecting_missing_results = {'mean': 39.0, 'median': 13.0, 'std': 42.0446,
-            'min': 1.0, 'max': 109.0, 'size': 8.0, 'mean_plus_std': 81.045, 'mean_minus_std': -3.045}
+        expecting_missing_results = {'mean': 39.0, 'median': 13.0, 'std': 42.0446, 'sum': 0.,
+            'min': 1.0, 'max': 109.0, 'size': 0.0, 'mean_plus_std': 81.045, 'mean_minus_std': -3.045}
 
         for function_name in functions:
             value = expecting_missing_results[function_name]
@@ -106,11 +107,11 @@ class TestTargetEncoder(unittest.TestCase):
             msg=f"On function {function_name}")
 
         expected_test_transformed = [
-            [8.0, 7.0, 5.354, 2, 15, 3, 13.354, 2.646],
-            [8.0, 7.0, 5.354, 2, 15, 3, 13.354, 2.646],
-            [77.,77.,0.,77.,77.,1.,77.,77.,],
-            [77.,77.,0.,77.,77.,1.,77.,77.,],
-            [39.0, 13.0, 42.0446, 1.0, 109.0, 8.0, 81.045, -3.045],
+            [8.0, 7.0, 5.354, 2, 15, 3, 24., 13.354, 2.646],
+            [8.0, 7.0, 5.354, 2, 15, 3, 24., 13.354, 2.646],
+            [77.,77.,0.,77.,77.,1.,77.,77.,77.,],
+            [77.,77.,0.,77.,77.,1.,77.,77.,77.,],
+            [39.0, 13.0, 42.0446, 1.0, 109.0, 0.0, 0.0, 81.045, -3.045],
         ]
 
         test_transformed = te.transform(first_test_X)

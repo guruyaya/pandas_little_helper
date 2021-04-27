@@ -43,6 +43,7 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
                         median: the median of the target
                         std: standart deviation of the target
                         size: number of elements in group
+                        sum: sum of target
                         min: minimum of this group
                         max: maximum of this group
                         mean_plus_std: mean plus the standart deviation
@@ -63,6 +64,7 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         'min': np.min,
         'max': np.max,
         'size': len,
+        'sum': np.sum,
         'mean_plus_std': lambda df: np.mean(df) + np.std(df),
         'mean_minus_std': lambda df: np.mean(df) - np.std(df),
     }
@@ -159,7 +161,11 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
 
         self.missing_groups_results_ = {}
         for name, func in zip(target_functions_names, target_functions_callables):
-            self.missing_groups_results_[name] = func(y)
+            # sum and size return 0 if missing
+            if name in ['sum', 'size']:
+                self.missing_groups_results_[name] = 0
+            else:
+                self.missing_groups_results_[name] = func(y)
 
         return self
 
