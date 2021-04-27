@@ -96,7 +96,7 @@ PyYAML==5.3.1
 pyzmq==19.0.2
 QDarkStyle==2.8.1
 QtPy==1.9.0
-Rtree==0.9.4
+Rtree>=0.9
 ruamel-yaml==0.15.87
 scikit-image==0.17.2
 scipy==1.6.2
