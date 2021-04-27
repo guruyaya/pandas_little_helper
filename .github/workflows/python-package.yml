@@ -38,4 +38,4 @@ jobs:
         mypy pandas_little_helper
     - name: Test with pytest
       run: |
-        pytest tests
+        python -m unittest discover tests -p "test_*.py
