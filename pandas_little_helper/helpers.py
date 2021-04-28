@@ -10,7 +10,8 @@ ValidDatatypeFunc = Callable[[AllValidDatatypes], AllValidDatatypes]
 NoneOrCallable = Union[ ValidDatatypeFunc, None ]
 
 @overload
-def get_list_if_single_entity(entity: Union[str, Callable[[AllValidDatatypes], AllValidDatatypes], int, None]) -> List:
+def get_list_if_single_entity(entity: Union[str,
+            Callable[[AllValidDatatypes], AllValidDatatypes], int, None]) -> List:
     ...
 @overload
 def get_list_if_single_entity(entity: List[Any]) -> List[Any]:
