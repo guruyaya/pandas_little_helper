@@ -36,7 +36,7 @@ jobs:
       run: |
         # stop the build if there are Python types don't match
         # TODO: remove the --ignore-missing-imports flag and add --strict. than face the issues
-        mypy --ignore-missing-imports pandas_little_helper
+        mypy pandas_little_helper
     - name: Test with pytest
       run: |
         python -m unittest discover tests -p "test_*.py"
