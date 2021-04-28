@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 """ This module contains useful structures and methods
 """
-from collections.abc import Callable
-from typing import List, Union, overload, Any
+from typing import List, Union, overload, Any, Callable
 import pandas as pd
 
+
+AllValidDatatypes = Union[ pd.Series ] # At this point there's only series supprt
+ValidDatatypeFunc = Callable[[AllValidDatatypes], AllValidDatatypes]
+NoneOrCallable = Union[ ValidDatatypeFunc, None ]
+
 @overload
-def get_list_if_single_entity(entity: Union[str, Callable, int, None]) -> List:
+def get_list_if_single_entity(entity: Union[str, Callable[[AllValidDatatypes], AllValidDatatypes], int, None]) -> List:
     ...
 @overload
 def get_list_if_single_entity(entity: List[Any]) -> List[Any]:
@@ -18,9 +22,6 @@ def get_list_if_single_entity(entity: Any) -> List[Any]:
         return entity.copy()
     return [entity]
 
-AllValidDatatypes = Union[ pd.Series ] # At this point there's only series supprt
-ValidDatatypeFunc = Callable
-NoneOrCallable = Union[ ValidDatatypeFunc, None ]
 
 class EncoderFunction:
     """ This class handles the way encoders handle methods.
@@ -33,8 +34,8 @@ class EncoderFunction:
 
     def run(self, data: AllValidDatatypes) -> AllValidDatatypes:
         """ Run target function """
-        return self.func(data) # type: ignore
+        return self.func(data)
 
     def run_fallback(self, data: AllValidDatatypes) -> AllValidDatatypes:
         """ Run fallback function """
-        return self.fallback_func(data) # type: ignore
+        return self.fallback_func(data)
