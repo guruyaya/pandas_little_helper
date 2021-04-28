@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.8, 3.9]
 
     steps:
     - uses: actions/checkout@v2
@@ -35,7 +35,8 @@ jobs:
     - name: Lint with mypy
       run: |
         # stop the build if there are Python types don't match
-        mypy pandas_little_helper
+        # TODO: remove the --ignore-missing-imports flag and add --strict. than face the issues
+        mypy --ignore-missing-imports pandas_little_helper
     - name: Test with pytest
       run: |
         python -m unittest discover tests -p "test_*.py"
