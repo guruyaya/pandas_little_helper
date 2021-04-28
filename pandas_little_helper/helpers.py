@@ -6,12 +6,12 @@ import pandas as pd
 
 
 AllValidDatatypes = Union[ pd.Series ] # At this point there's only series supprt
-ValidDatatypeFunc = Callable[[AllValidDatatypes], AllValidDatatypes]
+ValidDatatypeFunc = Callable[[AllValidDatatypes], Any]
 NoneOrCallable = Union[ ValidDatatypeFunc, None ]
 
 @overload
 def get_list_if_single_entity(entity: Union[str,
-            Callable[[AllValidDatatypes], AllValidDatatypes], int, None]) -> List:
+            Callable[[AllValidDatatypes], Any], int, None]) -> List[Any]:
     ...
 @overload
 def get_list_if_single_entity(entity: List[Any]) -> List[Any]:
@@ -27,16 +27,17 @@ def get_list_if_single_entity(entity: Any) -> List[Any]:
 class EncoderFunction:
     """ This class handles the way encoders handle methods.
     """
+    name: str
     def __init__(self, name: str, func: ValidDatatypeFunc,
                 fallback_func: NoneOrCallable=None):
-        self.name: str = name
+        self.name = name
         self.func: ValidDatatypeFunc = func
         self.fallback_func: ValidDatatypeFunc = func if fallback_func is None else fallback_func
 
-    def run(self, data: AllValidDatatypes) -> AllValidDatatypes:
+    def run(self, data: AllValidDatatypes) -> Any:
         """ Run target function """
         return self.func(data)
 
-    def run_fallback(self, data: AllValidDatatypes) -> AllValidDatatypes:
+    def run_fallback(self, data: AllValidDatatypes) -> Any:
         """ Run fallback function """
         return self.fallback_func(data)

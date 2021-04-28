@@ -7,7 +7,7 @@ Todo:
     * Create tests for this module
     * Add some more transformers
 """
-from typing import List, Union, Dict, Any
+from typing import List, Union, Dict, Any, Callable
 import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -45,16 +45,29 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         possible_target_functions: dict of possible target functions
     """
     # TODO: Callable should not accept and return any. mypy complains # pylint: disable=fixme
+    return_0: Callable[[pd.Series], Any] = lambda df: 0
+    get_mean: Callable[[pd.Series], Any] = lambda df: df.mean()
+    get_median: Callable[[pd.Series], Any] = lambda df: df.median()
+    get_std: Callable[[pd.Series], Any] = lambda df: np.std(df.to_numpy()) #pylint: disable=unnecessary-lambda
+    get_min: Callable[[pd.Series], Any] = lambda df: df.min()
+    get_max: Callable[[pd.Series], Any] = lambda df: df.max()
+    get_size: Callable[[pd.Series], Any] = lambda df: len(df) #pylint: disable=unnecessary-lambda
+    get_sum: Callable[[pd.Series], Any] = lambda df: df.sum()
+    get_mean_plus_std: Callable[[pd.Series], Any] = \
+        lambda df: np.mean(df.to_numpy()) + np.std(df.to_numpy())
+    get_mean_minus_std: Callable[[pd.Series], Any] = \
+        lambda df: np.mean(df.to_numpy()) - np.std(df.to_numpy())
+
     possible_target_functions: Dict[str, EncoderFunction] = {
-        'mean': EncoderFunction('mean', np.mean),
-        'median': EncoderFunction('median', np.median),
-        'std': EncoderFunction('std', np.std),
-        'min': EncoderFunction('min', np.min),
-        'max': EncoderFunction('max', np.max),
-        'size': EncoderFunction('size', len, lambda df: 0),
-        'sum': EncoderFunction('sum', np.sum, lambda df: 0),
-        'mean_plus_std': EncoderFunction('mean_plus_std', lambda df: np.mean(df) + np.std(df)),
-        'mean_minus_std': EncoderFunction('mean_minus_std', lambda df: np.mean(df) - np.std(df)),
+        'mean': EncoderFunction('mean', get_mean),
+        'median': EncoderFunction('median', get_median),
+        'std': EncoderFunction('std', get_std),
+        'min': EncoderFunction('min', get_min),
+        'max': EncoderFunction('max', get_max),
+        'size': EncoderFunction('size', get_size, return_0),
+        'sum': EncoderFunction('sum', get_sum, return_0),
+        'mean_plus_std': EncoderFunction('mean_plus_std', get_mean_plus_std),
+        'mean_minus_std': EncoderFunction('mean_minus_std', get_mean_minus_std),
     }
 
     found_results_: Dict[str, Any]
@@ -76,8 +89,8 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         self.fallback_to_na = fallback_to_na
         self.fill_na = fill_na
 
-        self._applied_target_functions = ['mean'] if self.target_functions is None \
-            else self.target_functions
+        self._applied_target_functions: List[Union[str, EncoderFunction]] = \
+            ['mean', ] if self.target_functions is None else self.target_functions
 
     def _replace_strings_with_encoder_function(self,
         function_list: List[ Union[EncoderFunction, str] ]
