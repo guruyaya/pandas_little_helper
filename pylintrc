@@ -1,3 +1,4 @@
 [Options]
 max-args = 10
+max-attributes=20
 good-names=X,y,X_copy,X_copy_index,i,e

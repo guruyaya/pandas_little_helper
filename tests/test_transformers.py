@@ -3,6 +3,7 @@ import sys
 import pathlib
 import pandas as pd
 import numpy as np
+from sklearn.exceptions import NotFittedError
 
 parent_path = str( pathlib.Path(__file__).parent.parent.absolute() )
 
@@ -11,7 +12,9 @@ sys.path.append(parent_path)
 from pandas_little_helper.transformers import (
     TargetEncoder
 )
-
+from pandas_little_helper.helpers import (
+    EncoderFunction
+)
 first_train_X = pd.DataFrame({
     'group1': ['A', 'A', 'A', 'B', 'C', 'B', 'D', 'D'],
     'group2': ['1', '1', '2', '3', '2', '1', '4', '2'],
@@ -54,9 +57,30 @@ class TestTargetEncoder(unittest.TestCase):
         for i, val in enumerate(expected_test_transformed):
             self.assertAlmostEqual(test_transformed.item(i,0), val, msg=f'Item number {i}')
 
+        # Simple errors expected
         with self.assertRaises(BaseException):
             te = TargetEncoder('group1')
             te.fit(first_train_X, fail1_train_y)
+
+        with self.assertRaises(KeyError):
+            te = TargetEncoder('group7')
+            te.fit(first_train_X, first_train_y)
+
+        with self.assertRaises(NotFittedError):
+            te = TargetEncoder('group1')
+            te.transform(first_test_X)
+
+    def test_fallback_to_na(self):
+        te = TargetEncoder('group1', fallback_to_na=True)
+        te.fit(first_train_X, first_train_y)
+        test_transformed = te.transform(first_test_X)
+        expected_test_transformed = [8., 8., 77., 77., np.nan]
+        for i, val in enumerate(expected_test_transformed):
+            if val is np.nan:
+                self.assertTrue(np.isnan(test_transformed.item(i,0)), 
+                    msg='Item number {} is not null but {}'.format(i, test_transformed.item(i,0)))
+            else:
+                self.assertAlmostEqual(test_transformed.item(i,0), val, msg=f'Item number {i}')
 
     def test_no_params_multiindex(self):
         te = TargetEncoder(['group1', 'group2'])
@@ -121,35 +145,12 @@ class TestTargetEncoder(unittest.TestCase):
                 self.assertAlmostEqual(test_transformed.item(i,fnum), val, 3,
                     msg=f'Item number {i} function: {function_name}')
 
-    def test_with_custom_unnamed_functions(self):
-        functions = [lambda s: np.quantile(s, 0.99), 'min', lambda s: np.max(s)]
-        te = TargetEncoder('group1', functions)
-        te.fit(first_train_X, first_train_y)
-
-        expecting_found_results = {
-            'function0': {'A': 14.84, 'B': 89.21, 'C': 77.0, 'D': 107.92},
-            'min': {'A': 2, 'B': 11, 'C': 77.0, 'D': 1},
-            'function2': {'A': 15, 'B': 90, 'C': 77.0, 'D': 109},
-        }
-        for function_name, values_list in expecting_found_results.items():
-            for key, value in values_list.items():
-                self.assertAlmostEqual(value, te.found_results_[function_name].loc[key],3,
-                    msg='On funcion {} key {}'.format(function_name, key))
-
-        expecting_missing_results = {'function0': 107.67, 'min': 1, 'function2': 109}
-        for key, value in expecting_missing_results.items():
-            self.assertAlmostEqual(value, te.missing_groups_results_[key], 3,
-                    msg='On key {key}')
-
-        features = te.get_feature_names()
-
-        for i, key in enumerate(expecting_found_results):
-            self.assertEqual(key, features[i])
-
     def test_with_custom_partly_named_function(self):
-        functions = [lambda s: np.quantile(s, 0.99), 'min', lambda s: np.max(s)]
-        functions_names = [None, None, 'MAXIMUM']
-        te = TargetEncoder('group1', functions, functions_names)
+        functions = [
+            EncoderFunction('function0', lambda s: np.quantile(s, 0.99)), 'min', 
+            EncoderFunction('MAXIMUM', lambda s: np.max(s))]
+
+        te = TargetEncoder('group1', functions)
         te.fit(first_train_X, first_train_y)
         expecting_found_results = {
             'function0': {'A': 14.84, 'B': 89.21, 'C': 77.0, 'D': 107.92},
