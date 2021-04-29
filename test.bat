@@ -1,0 +1,1 @@
+mypy pandas_little_helper && pylint pandas_little_helper && python -m unittest discover tests
