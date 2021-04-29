@@ -1,3 +1,3 @@
 """ Version file
 """
-__version__ = '0.01a'
+__version__ = '0.1a0'
