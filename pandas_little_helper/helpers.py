@@ -4,7 +4,6 @@
 from typing import List, Union, overload, Any, Callable
 import pandas as pd
 
-
 AllValidDatatypes = Union[ pd.Series ] # At this point there's only series supprt
 ValidDatatypeFunc = Callable[[AllValidDatatypes], Any]
 NoneOrCallable = Union[ ValidDatatypeFunc, None ]
