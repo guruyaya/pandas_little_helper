@@ -14,7 +14,10 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.exceptions import NotFittedError
 from pandas_little_helper.helpers import get_list_if_single_entity, EncoderFunction
 
-class TargetEncoder(BaseEstimator, TransformerMixin):
+# NOTE: ignoring type hints are all around this file to handle Series, as they don't work
+# well on 3.8. Expecting future improvments on that matter
+# BaseEstimator, TransformerMixin dont have stubs yet.
+class TargetEncoder(BaseEstimator, TransformerMixin): # type: ignore
     """ This transformer is designed to handle categorical data. It gets a dataframe or numpy,
     using grouping, it applies a function on the whole group, and keeps the answer. This usually
     uses mean function on the target, allthogh this function is designed to handle veraity of tasks
@@ -45,18 +48,20 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         possible_target_functions: dict of possible target functions
     """
     # TODO: Callable should not accept and return any. mypy complains # pylint: disable=fixme
-    return_0: Callable[[pd.Series], Any] = lambda df: 0
-    get_mean: Callable[[pd.Series], Any] = lambda df: df.mean()
-    get_median: Callable[[pd.Series], Any] = lambda df: df.median()
-    get_std: Callable[[pd.Series], Any] = lambda df: np.std(df.to_numpy()) #pylint: disable=unnecessary-lambda
-    get_min: Callable[[pd.Series], Any] = lambda df: df.min()
-    get_max: Callable[[pd.Series], Any] = lambda df: df.max()
-    get_size: Callable[[pd.Series], Any] = lambda df: len(df) #pylint: disable=unnecessary-lambda
-    get_sum: Callable[[pd.Series], Any] = lambda df: df.sum()
-    get_mean_plus_std: Callable[[pd.Series], Any] = \
+    return_0: Callable[[pd.Series], Any] = lambda df: 0 # type: ignore
+    get_mean: Callable[[pd.Series], Any] = lambda df: df.mean() # type: ignore
+    get_median: Callable[[pd.Series], Any] =  lambda df: df.median() # type: ignore
+    get_std: Callable[[pd.Series], Any] =  lambda df: np.std(df.to_numpy()) # type: ignore
+    get_min: Callable[[pd.Series], Any] =  lambda df: df.min() # type: ignore
+    get_max: Callable[[pd.Series], Any] =  lambda df: df.max() # type: ignore
+    get_size: Callable[[pd.Series], Any] =  lambda df: df.shape[0] # type: ignore
+    get_sum: Callable[[pd.Series], Any] =  lambda df: df.sum() # type: ignore
+    get_mean_plus_std: Callable[[pd.Series], Any] = (  # type: ignore
         lambda df: np.mean(df.to_numpy()) + np.std(df.to_numpy())
-    get_mean_minus_std: Callable[[pd.Series], Any] = \
+    )
+    get_mean_minus_std: Callable[[pd.Series], Any] = ( # type: ignore
         lambda df: np.mean(df.to_numpy()) - np.std(df.to_numpy())
+    )
 
     possible_target_functions: Dict[str, EncoderFunction] = {
         'mean': EncoderFunction('mean', get_mean),
@@ -75,11 +80,11 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
 
     def __init__(self,
                 group_cols: Union[str, List[str]],
-                target_functions: List[ Union[EncoderFunction, str] ] = None,
+                target_functions: Union[None, List[ Union[EncoderFunction, str] ]] = None,
                 target_col_y: bool = True,
-                target_col_name: str = None,
+                target_col_name: Union[None, str] = None,
                 fallback_to_na: bool = False,
-                fill_na: Union[None, pd.Series] = None):
+                fill_na: Union[None, pd.Series] = None): # type: ignore
 
         super().__init__()
         self.group_cols = group_cols
@@ -104,7 +109,8 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
                 out.append(func)
         return out
 
-    def fit(self, X: pd.DataFrame, y: pd.Series):
+    # This will become something else when sklearn add type hints
+    def fit(self, X: pd.DataFrame, y: pd.Series) -> Any: # type: ignore
         """ Fitting function for model
             X: The DataFrame / Numpy array used to extract data
             y: The target of the query. Note: doesn't have to be the target of this model
@@ -113,7 +119,7 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
             raise BaseException('X size is {} and y size is {}'.format(len(X), len(y)))
 
         X_copy:pd.DataFrame = X.copy()
-        y_copy:pd.Series = y.copy()
+        y_copy:pd.Series = y.copy() # type: ignore
 
         target_functions: List[ EncoderFunction ] = \
             self._replace_strings_with_encoder_function(self._applied_target_functions)

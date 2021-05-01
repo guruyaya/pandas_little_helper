@@ -147,7 +147,7 @@ class TestTargetEncoder(unittest.TestCase):
 
     def test_with_custom_partly_named_function(self):
         functions = [
-            EncoderFunction('function0', lambda s: np.quantile(s, 0.99)), 'min', 
+            EncoderFunction('function0', lambda s: np.quantile(s, 0.99)), 'min',
             EncoderFunction('MAXIMUM', lambda s: np.max(s))]
 
         te = TargetEncoder('group1', functions)

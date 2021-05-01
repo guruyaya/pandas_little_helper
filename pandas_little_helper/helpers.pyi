@@ -1,9 +1,9 @@
 from typing import List, Union, overload, Any, Callable
 import pandas as pd
 
-AllValidDatatypes = Union[ pd.Series ] # At this point there's only series supprt
-ValidDatatypeFunc = Callable[[AllValidDatatypes], AllValidDatatypes]
-NoneOrCallable = Union[ ValidDatatypeFunc, None ]
+AllValidDatatypes: Any = Union[ pd.Series ] # At this point there's only series supprt
+ValidDatatypeFunc: Any = Callable[[AllValidDatatypes], AllValidDatatypes]
+NoneOrCallable: Any = Union[ ValidDatatypeFunc, None ]
 
 @overload
 def get_list_if_single_entity(entity: Union[str,
